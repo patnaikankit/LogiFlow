@@ -1,16 +1,26 @@
 export const calculatePrice = (pickupLocation, dropOffLocation, vehicleType) => {
-    const distance = getDistance(pickupLocation, dropOffLocation);  
-    const basePrice = vehicleType === 'truck' ? 10 : 5;
-    const demandMultiplier = getDemandMultiplier();  
-  
-    return distance * basePrice * demandMultiplier;
-  };
-  
-  const getDistance = (pickup, dropoff) => {
-    return Math.random()*50;  
-  };
-  
-  const getDemandMultiplier = () => {
-    return Math.random() + 1;  
-  };
-  
+  const distance = getDistance(pickupLocation, dropOffLocation);
+  let basePrice;
+
+  // price per km
+  switch (vehicleType) {
+    case 'truck':
+      basePrice = 50;  
+      break;
+    case 'train':
+      basePrice = 100;  
+      break;
+    case 'flight':
+      basePrice = 200;  
+      break;
+    default:
+      throw new Error('Invalid vehicle type');
+  }
+
+  return distance * basePrice ;
+};
+
+const getDistance = (pickup, dropoff) => {
+  return Math.random()*100;  
+};
+

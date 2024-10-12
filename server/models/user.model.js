@@ -11,13 +11,19 @@ const userSchema = new mongoose.Schema({
     unique: true 
   },
   phone: { 
-    type: String,
-    required: true ,
+    type: Number,
+    required: true,
     unique: true 
   },
   password: {
     type: String,
     required: true
+  },
+  tokens: {
+        accessToken: {
+            token: String,
+            expireAt: Date
+        }
   },
   bookings: [{ 
     type: mongoose.Schema.Types.ObjectId, 

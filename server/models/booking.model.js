@@ -18,7 +18,7 @@ const bookingSchema = new mongoose.Schema({
         type: String, 
         default: 'pending' 
     },
-  userId: { 
+  userID: { 
     type: mongoose.Schema.Types.ObjectId, 
     ref: 'User', 
     required: true 
