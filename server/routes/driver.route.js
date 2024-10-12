@@ -5,6 +5,6 @@ const router = express.Router()
 
 
 router.get("/new-booking", fetchNewBookings)
-router.post("/update-booking/:bookingID", acceptBooking)
+router.post("/update-booking/booking/:bookingID/vehicle/:vehicleID", acceptBooking);
 
 export default router

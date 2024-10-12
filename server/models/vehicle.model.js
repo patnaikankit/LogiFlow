@@ -23,7 +23,10 @@ const vehicleSchema = new mongoose.Schema({
     type: String,
     default: uuidv4,
     unique: true
-  },       
+  },   
+  bookingID: {
+    type: String,
+  }    
 }, { timestamps: true });
 
 export const vehicleModel = mongoose.model('Vehicle', vehicleSchema);

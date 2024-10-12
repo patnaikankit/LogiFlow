@@ -1,4 +1,5 @@
 import { bookingModel } from '../models/booking.model.js';
+import { vehicleModel } from '../models/vehicle.model.js';
 
 export const fetchNewBookings = async (req, res) => {
     try {
@@ -23,7 +24,7 @@ export const fetchNewBookings = async (req, res) => {
 };
 
 export const acceptBooking = async (req, res) => {
-    const { bookingID } = req.params;
+    const { bookingID, vehicleID } = req.params;
 
     try {
         const booking = await bookingModel.findById(bookingID);
@@ -34,14 +35,34 @@ export const acceptBooking = async (req, res) => {
             });
         }
 
+        if (booking.deliveryStatus === 'accepted') {
+            return res.status(400).json({
+                success: false,
+                message: 'Booking already accepted',
+            });
+        }
+
+        const vehicle = await vehicleModel.findById(vehicleID);
+        if (!vehicle) {
+            return res.status(404).json({
+                success: false,
+                message: 'Vehicle not found'
+            });
+        }
+
         booking.deliveryStatus = 'accepted';
+        booking.vehicleID = vehicleID
         await booking.save();
+
+        vehicle.bookingID = bookingID;
+        await vehicle.save();
 
         res.status(200).json({
             success: true,
-            message: 'Booking accepted',
+            message: 'Booking accepted successfully',
             booking,
         });
+
     } catch (err) {
         res.status(500).json({
             success: false,
@@ -49,4 +70,3 @@ export const acceptBooking = async (req, res) => {
         });
     }
 };
-
