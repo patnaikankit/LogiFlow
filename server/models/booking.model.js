@@ -14,10 +14,14 @@ const bookingSchema = new mongoose.Schema({
     require: true
   },
   estimatedCost: Number,
-  status: { 
+  bookingStatus: { 
         type: String, 
         default: 'pending' 
-    },
+  },
+  deliveryStatus: { 
+    type: String, 
+    default: 'pending' 
+},
   userID: { 
     type: mongoose.Schema.Types.ObjectId, 
     ref: 'User', 

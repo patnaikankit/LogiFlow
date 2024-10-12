@@ -3,6 +3,7 @@ import { userModel } from "../models/user.model.js"
 import { calculatePrice } from "../services/price.service.js"
 import { generateToken } from "../utils/auth.util.js" 
 import bcrypt from "bcrypt"
+import { Server } from "socket.io"
 
 export const registerUser = async (req, res) => {
     const { name, email, phone, password } = req.body;
@@ -47,7 +48,7 @@ export const registerUser = async (req, res) => {
             error: err.message 
         });
     }
-}
+};
 
 export const loginUser = async (req, res) => {
     const { email, password } = req.body;
@@ -124,7 +125,7 @@ export const createBooking = async (req, res) => {
       vehicleType,
       estimatedCost,
       userID,
-      status: 'confirmed',
+      bookingStatus: 'confirmed',
     });
   
     try {
@@ -151,4 +152,59 @@ export const createBooking = async (req, res) => {
         error: err.message,
       });
     }
-  };
+};
+
+export const trackvehicle = async (req, res) => {
+  const { userID, bookingID } = req.params;  
+
+  if (!userID || !bookingID) {
+    return res.status(400).json({
+      success: false,
+      message: "User ID and Booking ID are required"
+    });
+  }
+
+  try {
+    io.on('connection', (socket) => {
+      console.log(`User connected: ${socket.id}`);
+
+      socket.on('userConnect', (userID) => {
+        userSockets[userID] = socket;
+        console.log(`User ${userID} connected`);
+      });
+
+      socket.on('driverConnect', (driverID) => {
+        driverSockets[driverID] = socket;
+        console.log(`Driver ${driverID} connected`);
+      });
+
+      socket.on('locationUpdate', (driverID, location) => {
+        if (driverSockets[driverID]) {
+          const userSocket = userSockets[userID];
+          if (userSocket) {
+            userSocket.emit('driverLocation', {
+              bookingID,
+              location
+            });
+            console.log(`Sent driver location to user ${userID}`);
+          }
+        }
+      });
+
+      socket.on('disconnect', () => {
+        console.log('User disconnected:', socket.id);
+      });
+    });
+
+    res.status(200).json({
+      success: true,
+      message: `Tracking started for booking ${bookingID}`
+    });
+  }
+  catch(err){
+    res.status(500).json({
+      success: false,
+      message: `Error tracking vehicle: ${err.message}`
+    });
+  }
+};

@@ -10,9 +10,6 @@ export const calculatePrice = (pickupLocation, dropOffLocation, vehicleType) => 
     case 'train':
       basePrice = 100;  
       break;
-    case 'flight':
-      basePrice = 200;  
-      break;
     default:
       throw new Error('Invalid vehicle type');
   }
