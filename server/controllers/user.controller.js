@@ -3,7 +3,7 @@ import { userModel } from "../models/user.model.js"
 import { calculatePrice } from "../services/price.service.js"
 import { generateToken } from "../utils/auth.util.js" 
 import bcrypt from "bcrypt"
-import { Server } from "socket.io"
+import jwt from "jsonwebtoken"
 
 export const registerUser = async (req, res) => {
     const { name, email, phone, password } = req.body;

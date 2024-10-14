@@ -7,6 +7,5 @@ const router = express.Router()
 router.post("/register", registerUser)
 router.post("/login", loginUser)
 router.post("/booking/:userID", validateUserToken, createBooking)
-router.get("/check/id/:studentID", checkUserToken)
 
 export default router

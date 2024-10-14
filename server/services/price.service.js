@@ -4,10 +4,10 @@ export const calculatePrice = (pickupLocation, dropOffLocation, vehicleType) => 
 
   // price per km
   switch (vehicleType) {
-    case 'truck':
+    case 'Truck':
       basePrice = 50;  
       break;
-    case 'train':
+    case 'Train':
       basePrice = 100;  
       break;
     default:

@@ -1,28 +1,66 @@
 import React, { useState } from 'react';
+import { toast } from 'react-toastify';
+import axios from 'axios';
 
 const UserDashboard = () => {
+
   const [bookings, setBookings] = useState([
-    { id: 1, pickup: '123 Main St', dropoff: '456 Elm St', vehicle: 'Van', status: 'In Progress' },
+    { id: 1, pickup: '123 Main St', dropoff: '456 Elm St', vehicle: 'Train', status: 'In Progress' },
     { id: 2, pickup: '789 Oak Ave', dropoff: '321 Pine Rd', vehicle: 'Truck', status: 'Completed' },
   ]);
 
   const [newBooking, setNewBooking] = useState({
-    pickup: '',
-    dropoff: '',
-    vehicle: 'Van',
+    pickupLocation: '',
+    dropOffLocation: '',
+    vehicleType: 'Train',
   });
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setNewBooking(prev => ({ ...prev, [name]: value }));
+  setNewBooking((prevBooking) => ({
+    ...prevBooking,
+    [name]: value, 
+  }));
   };
 
-  const handleSubmit = (e) => {
+  const handleLogout = () => {
+    localStorage.clear();
+    window.location.href = "/";
+  }
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const id = bookings.length + 1;
-    setBookings(prev => [...prev, { ...newBooking, id, status: 'Pending' }]);
-    setNewBooking({ pickup: '', dropoff: '', vehicle: 'Van' });
+    const newBookingData = {
+      ...newBooking,
+    };
+
+    console.log(newBookingData);
+    console.log(localStorage.getItem('userID'));
+    
+  
+    try {
+      const response = await axios.post(`${import.meta.env.VITE_REACT_APP_BACKEND_URL}/api/user/booking/${localStorage.getItem('userID')}`, newBookingData, {
+        headers: {
+                    Authorization: `Bearer ${localStorage.getItem(
+                        "userToken"
+                    )}`
+        }
+      });
+  
+      if (response.status === 201) {
+        setBookings(prev => [...prev, newBookingData]); 
+        toast.success('Booking created successfully!');
+      } else {
+        toast.error('Failed to create booking. Please try again.');
+      }
+    } catch (error) {
+      toast.error('Something went wrong. Please try again later.');
+      console.error(error);
+    } finally {
+      setNewBooking({ pickupLocation: '', dropOffLocation: '', vehicle: 'Train' });
+    }
   };
+  
 
   return (
     <div className="min-h-screen bg-gray-900 text-white">
@@ -48,7 +86,7 @@ const UserDashboard = () => {
             <span className="text-xl font-bold text-blue-500">LogiFlow</span>
           </div>
           <nav>
-            <button className="text-gray-300 hover:text-white transition-colors">Logout</button>
+            <button onClick={() => {handleLogout()}} className="text-gray-300 hover:text-white transition-colors">Logout</button>
           </nav>
         </div>
       </header>
@@ -61,41 +99,40 @@ const UserDashboard = () => {
             <h2 className="text-2xl font-semibold mb-4">New Booking</h2>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label htmlFor="pickup" className="block text-sm font-medium text-gray-300">Pickup Location</label>
+                <label htmlFor="pickupLocation" className="block text-sm font-medium text-gray-300">Pickup Location</label>
                 <input
                   type="text"
-                  id="pickup"
-                  name="pickup"
-                  value={newBooking.pickup}
+                  id="pickupLocation"
+                  name="pickupLocation" 
+                  value={newBooking.pickupLocation}
                   onChange={handleInputChange}
                   required
                   className="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50"
                 />
               </div>
               <div>
-                <label htmlFor="dropoff" className="block text-sm font-medium text-gray-300">Drop-off Location</label>
+                <label htmlFor="dropOffLocation" className="block text-sm font-medium text-gray-300">Drop-off Location</label>
                 <input
                   type="text"
-                  id="dropoff"
-                  name="dropoff"
-                  value={newBooking.dropoff}
+                  id="dropOffLocation"
+                  name="dropOffLocation"
+                  value={newBooking.dropOffLocation}
                   onChange={handleInputChange}
                   required
                   className="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50"
                 />
               </div>
               <div>
-                <label htmlFor="vehicle" className="block text-sm font-medium text-gray-300">Vehicle Type</label>
+                <label htmlFor="vehicleType" className="block text-sm font-medium text-gray-300">Vehicle Type</label>
                 <select
-                  id="vehicle"
-                  name="vehicle"
-                  value={newBooking.vehicle}
+                  id="vehicleType"
+                  name="vehicleType"
+                  value={newBooking.vehicleType}
                   onChange={handleInputChange}
                   className="mt-1 block w-full rounded-md bg-gray-700 border-gray-600 text-white shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50"
                 >
-                  <option value="Van">Van</option>
+                  <option value="Train">Train</option>
                   <option value="Truck">Truck</option>
-                  <option value="Car">Car</option>
                 </select>
               </div>
               <button

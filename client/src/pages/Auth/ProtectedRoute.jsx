@@ -2,6 +2,8 @@ import axios from "axios"
 import { Navigate, useLocation } from 'react-router-dom';
 
 const isAuthenticated = async (path) => {
+    const [auth, setAuth] = useState(null);
+
     if (path.startsWith('/user') && localStorage.getItem('accessTokenToken')) {
         const userID = localStorage.getItem('userID');
         try {
@@ -32,23 +34,21 @@ const isAuthenticated = async (path) => {
 }
 
 
-export const ProtectedRoute = ({ component: Component }) => {
-    const location = useLocation();
-    const [isAuth, setIsAuth] = useState(false);
-
+export const ProtectedRoute = ({ Component, path }) => {
+    const [auth, setAuth] = useState(null);
+  
     useEffect(() => {
-        const checkAuth = async () => {
-            const auth = await isAuthenticated(location.pathname);
-            setIsAuth(auth);
-            setLoading(false);
-        };
-        checkAuth();
-    }, [location.pathname]);
-
-    if (isAuth) {
-        return <Component />;
-    } else {
-        return <Navigate to="/login" replace state={{ from: location }} />;
-        
+      const checkAuth = async () => {
+        const isUserAuthenticated = await isAuthenticated(path);
+        setAuth(isUserAuthenticated);
+      };
+      checkAuth();
+    }, [path]);
+  
+    if (auth === null) {
+      return <div>Loading...</div>;
     }
-};
+  
+    return auth ? <Component /> : <Navigate to="/login" />;
+  };
+  

@@ -39,6 +39,8 @@ const AuthPage = () => {
       .then((response) => {
         const data = response.data;
         if (data.success) {
+          localStorage.setItem("userToken", data.data.tokens.accessToken.token);
+          localStorage.setItem("userID", data.data._id);
           toast.success(`Successfully ${isLogin ? 'logged in' : 'registered'} as ${userType}. Redirecting...`);
           window.location.href = `/${userType}/`;
         } else {
