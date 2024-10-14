@@ -1,19 +1,44 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import axios from 'axios';
 
 const UserDashboard = () => {
 
-  const [bookings, setBookings] = useState([
-    { id: 1, pickup: '123 Main St', dropoff: '456 Elm St', vehicle: 'Train', status: 'In Progress' },
-    { id: 2, pickup: '789 Oak Ave', dropoff: '321 Pine Rd', vehicle: 'Truck', status: 'Completed' },
-  ]);
+  const [bookings, setBookings] = useState([]);
 
   const [newBooking, setNewBooking] = useState({
     pickupLocation: '',
     dropOffLocation: '',
     vehicleType: 'Train',
   });
+
+  // useEffect(() => {
+  //   const fetchBookings = async () => {
+  //     try {
+  //       const userID = localStorage.getItem('userID'); 
+  //       if (userID) {
+  //         const response = await axios.get(
+  //           `${import.meta.env.VITE_REACT_APP_BACKEND_URL}/api/user/fetch-bookings/user/${userID}`,
+  //           {
+  //             headers: {
+  //               Authorization: `Bearer ${localStorage.getItem('userToken')}`, 
+  //             },
+  //           }
+  //         );
+
+  //         if (response.data.success) {
+  //           setBookings(response.data.bookings);
+  //         } else {
+  //           console.log('Failed to fetch bookings');
+  //         }
+  //       }
+  //     } catch (error) {
+  //       console.error('Error fetching bookings:', error);
+  //     }
+  //   };
+
+  //   fetchBookings();
+  // }, []);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;

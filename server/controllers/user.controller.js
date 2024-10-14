@@ -154,58 +154,64 @@ export const createBooking = async (req, res) => {
     }
 };
 
-export const trackvehicle = async (req, res) => {
-  const { userID, bookingID } = req.params;  
-
-  if (!userID || !bookingID) {
-    return res.status(400).json({
-      success: false,
-      message: "User ID and Booking ID are required"
-    });
-  }
+export const fetchMyBookings = async (req, res) => {
+  const { userID } = req.params;  
 
   try {
-    io.on('connection', (socket) => {
-      console.log(`User connected: ${socket.id}`);
+    const userBookings = await bookingModel.find({ userID }); 
 
-      socket.on('userConnect', (userID) => {
-        userSockets[userID] = socket;
-        console.log(`User ${userID} connected`);
+    if (userBookings.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'No bookings found for this user',
       });
-
-      socket.on('driverConnect', (driverID) => {
-        driverSockets[driverID] = socket;
-        console.log(`Driver ${driverID} connected`);
-      });
-
-      socket.on('locationUpdate', (driverID, location) => {
-        if (driverSockets[driverID]) {
-          const userSocket = userSockets[userID];
-          if (userSocket) {
-            userSocket.emit('driverLocation', {
-              bookingID,
-              location
-            });
-            console.log(`Sent driver location to user ${userID}`);
-          }
-        }
-      });
-
-      socket.on('disconnect', () => {
-        console.log('User disconnected:', socket.id);
-      });
-    });
+    }
 
     res.status(200).json({
       success: true,
-      message: `Tracking started for booking ${bookingID}`
+      message: 'User bookings fetched successfully',
+      data: userBookings,
     });
-  }
-  catch(err){
+  } catch (err) {
     res.status(500).json({
       success: false,
-      message: `Error tracking vehicle: ${err.message}`
+      error: err.message,
     });
+  }
+};
+
+
+export const trackvehicle = async (req, res) => {
+  const { bookingID } = req.params;  
+
+  try {
+      const booking = await bookingModel.findById(bookingID) 
+
+      if (!booking) {
+          return res.status(404).json({
+              success: false,
+              message: 'Booking not found',
+          });
+      }
+
+      res.status(200).json({
+          success: true,
+          message: 'Booking status fetched successfully',
+          data: {
+              bookingID: booking._id,
+              pickupLocation: booking.pickupLocation,
+              dropOffLocation: booking.dropOffLocation,
+              status: booking.status, 
+              driver: booking.driverID,
+              estimatedCost: booking.estimatedCost,
+              createdAt: booking.createdAt,
+          },
+      });
+  } catch (err) {
+      res.status(500).json({
+          success: false,
+          error: err.message,
+      });
   }
 };
 

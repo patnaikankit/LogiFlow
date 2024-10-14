@@ -13,8 +13,9 @@ function App() {
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/auth" element={<AuthPage />} />
-          <Route path='/user' element={<ProtectedRoute path="/login" component={<UserDashboard />} />}
-          />
+          {/* <Route path='/user' element={<ProtectedRoute path="/login" component={<UserDashboard />} />}
+          /> */}
+          <Route path='/user' element={<UserDashboard />}/>
           <Route path='/driver' element={<DriverDashboard />}/>
         </Routes>
       </Router>

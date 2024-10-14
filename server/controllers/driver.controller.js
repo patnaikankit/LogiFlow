@@ -1,9 +1,110 @@
 import { bookingModel } from '../models/booking.model.js';
-import { vehicleModel } from '../models/vehicle.model.js';
+import { driverModel } from '../models/driver.model.js';
+import bcrypt from "bcrypt"
+import { generateToken } from '../utils/auth.util.js';
+
+export const registerDriver = async (req, res) => {
+    const { name, email, password } = req.body;
+
+    if (!name || !email || !password) {
+        return res.status(400).json({
+            success: false,
+            message: "All Fields are Required!"
+        });
+    }
+
+    try {
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        const accessTokenExp = Math.floor(Date.now() / 1000) + 24 * 60 * 60;
+        const accessToken = generateToken({ email }, accessTokenExp);
+
+        const newDriver = new driverModel({ 
+            name, 
+            email, 
+            password: hashedPassword,
+            tokens: {
+                accessToken: {
+                    token: accessToken,
+                    expireAt: new Date(accessTokenExp * 1000)
+                }
+            }
+        });
+
+        const savedDriver = await newDriver.save();
+
+        res.status(201).json({
+            success: true,
+            message: "New Student driver Successfully!",
+            data: savedDriver
+        });
+    } 
+    catch (err) {
+        res.status(500).json({ 
+            success: false,
+            error: err.message 
+        });
+    }
+};
+
+export const loginDriver = async (req, res) => {
+    const { email, password } = req.body;
+  
+    if (!email || !password) {
+      res.status(400).json({
+        success: false,
+        message: "All Fields are Required!",
+      });
+      return;
+    }
+  
+    try {
+      const driver = await driverModel.findOne({ email });
+  
+      if (!driver) {
+        res.status(422).json({
+          success: false,
+          message: "Invalid email!",
+        });
+        return;
+      }
+  
+      const passwordCheck = await bcrypt.compare(password, driver.password);
+  
+      if (!passwordCheck) {
+        res.status(422).json({
+          success: false,
+          message: "driver Credentials don't match!",
+        });
+        return;
+      }
+  
+      const accessTokenExp = Date.now() / 1000 + 24 * 60 * 60;
+      const accessToken = generateToken({ email: driver.email }, accessTokenExp);
+  
+      driver.tokens.accessToken = {
+        token: accessToken,
+        expireAt: new Date(accessTokenExp * 1000),
+      };
+  
+      const savedUser = await driver.save();
+  
+      res.status(200).json({
+        success: true,
+        message: "Login Successful!",
+        data: savedUser,
+      });
+    } catch (err) {
+      res.status(500).json({
+        success: false,
+        error: err.message,
+      });
+    }
+};
 
 export const fetchNewBookings = async (req, res) => {
     try {
-        const newBookings = await bookingModel.find({ deliveryStatus: 'pending' }).limit(1); 
+        const newBookings = await bookingModel.find({ deliveryStatus: 'pending' });
         if (newBookings.length === 0) {
             return res.status(200).json({
                 success: true,
@@ -42,7 +143,7 @@ export const acceptBooking = async (req, res) => {
             });
         }
 
-        const vehicle = await vehicleModel.findById(vehicleID);
+        const vehicle = await driverModel.findById(vehicleID);
         if (!vehicle) {
             return res.status(404).json({
                 success: false,
@@ -63,6 +164,36 @@ export const acceptBooking = async (req, res) => {
             booking,
         });
 
+    } catch (err) {
+        res.status(500).json({
+            success: false,
+            error: err.message,
+        });
+    }
+};
+
+export const statusUpdate = async (req, res) => {
+    const { bookingID } = req.params; 
+
+    try {
+        const booking = await bookingModel.findById(bookingID);
+        
+        if (!booking) {
+            return res.status(404).json({
+                success: false,
+                message: 'Booking not found',
+            });
+        }
+        
+        booking.status = req.body.status; 
+
+        await booking.save();
+
+        res.status(200).json({
+            success: true,
+            message: 'Booking status updated successfully',
+            booking,
+        });
     } catch (err) {
         res.status(500).json({
             success: false,

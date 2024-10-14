@@ -22,6 +22,9 @@ const bookingSchema = new mongoose.Schema({
       type: String, 
       default: 'pending' 
     },
+    status: {
+      type: String
+    },
     userID: { 
       type: mongoose.Schema.Types.ObjectId, 
       ref: 'User', 

@@ -1,24 +1,112 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import axios from "axios";
+import { toast } from 'react-toastify';
 
 const DriverDashboard = () => {
-  const [availableJobs, setAvailableJobs] = useState([
-    { id: 1, pickup: '123 Main St', dropoff: '456 Elm St', vehicle: 'Van' },
-    { id: 2, pickup: '789 Oak Ave', dropoff: '321 Pine Rd', vehicle: 'Truck' },
-  ]);
+  const [availableJobs, setAvailableJobs] = useState([]); 
 
   const [acceptedJob, setAcceptedJob] = useState(null);
 
   const [jobStatus, setJobStatus] = useState('');
 
-  const handleAcceptJob = (job) => {
-    setAcceptedJob(job);
-    setAvailableJobs(availableJobs.filter(j => j.id !== job.id));
-    setJobStatus('Accepted');
-  };
 
-  const handleUpdateStatus = (newStatus) => {
-    setJobStatus(newStatus);
+  useEffect(() => {
+    const fetchJobs = async () => {
+      try {
+        const response = await axios.get(`${import.meta.env.VITE_REACT_APP_BACKEND_URL}/api/driver/new-booking`); 
+        console.log(response);
+        
+        if (response.data.success) {
+          const { pickupLocation, dropOffLocation, vehicleType } = response.data.booking;
+          const job = {
+            id: response.data.booking._id,
+            pickup: pickupLocation,
+            dropoff: dropOffLocation,
+            vehicle: vehicleType,
+          };
+          setAvailableJobs((prevJobs) => [...prevJobs, job]);
+        }
+      } catch (error) {
+        console.error('Error fetching jobs:', error);
+      }
+    };
+
+    if (window.performance) {
+      const navigationType = window.performance.getEntriesByType('navigation')[0].type;
+      
+      if (navigationType === 'reload') {
+        fetchJobs();  
+      }
+    }
+  }, []);
+
+  const handleAcceptJob = async (job) => {
+    console.log(`Job ID: ${job.id}`);
+    console.log(`${localStorage.getItem('driverID')}`);
+    console.log(`${localStorage.getItem('driverToken')}`);
+    
+
+    try {
+      const response = await axios.post(
+        `${import.meta.env.VITE_REACT_APP_BACKEND_URL}/api/driver/accept-booking/booking/${job.id}/vehicle/${localStorage.getItem('driverID')}`,
+        { status: 'Accepted' }, 
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('accessToken')}`, 
+          },
+        }
+      );
+      console.log(response);
+      
+  
+      if (response.data.success) {
+        console.log("Booking updated successfully.");
+        setAcceptedJob(job);
+        setAvailableJobs(availableJobs.filter(j => j.id !== job.id));
+        setJobStatus('Accepted');
+      }
+    } catch (error) {
+      console.error("Error accepting job:", error);
+    }
   };
+  
+
+  const handleUpdateStatus = async (newStatus, job) => {
+    try {
+      console.log(`${job}`);
+      
+      setJobStatus(newStatus);
+
+      const response = await axios.post(
+        `${import.meta.env.VITE_REACT_APP_BACKEND_URL}/api/driver/update-booking/booking/${job}/`,
+        { status: newStatus },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('accessToken')}`, 
+          },
+        }
+      );
+      
+
+      if (response.data.success) {
+        console.log('Status updated successfully:', response.data);
+        toast.success(`Job status updated to ${newStatus}`);
+      } else {
+        console.error('Failed to update status');
+        toast.error('Failed to update job status');
+      }
+    } catch (error) {
+      console.error('Error updating job status:', error);
+      toast.error('An error occurred while updating job status');
+    }
+  };
+  
+
+  const handleLogout = () => {
+    localStorage.clear();
+    window.location.href = "/";
+  } 
+
 
   return (
     <div className="min-h-screen bg-gray-900 text-white">
@@ -44,7 +132,7 @@ const DriverDashboard = () => {
             <span className="text-xl font-bold text-blue-500">LogiFlow</span>
           </div>
           <nav>
-            <button className="text-gray-300 hover:text-white transition-colors">Logout</button>
+            <button onClick={handleLogout} className="text-gray-300 hover:text-white transition-colors">Logout</button>
           </nav>
         </div>
       </header>
@@ -104,25 +192,25 @@ const DriverDashboard = () => {
                   <h3 className="text-lg font-semibold mb-2">Update Status</h3>
                   <div className="flex flex-wrap gap-2">
                     <button
-                      onClick={() => handleUpdateStatus('En route to pickup')}
+                      onClick={() => handleUpdateStatus('En route to pickup', acceptedJob.id)}
                       className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition duration-150 ease-in-out"
                     >
                       En route to pickup
                     </button>
                     <button
-                      onClick={() => handleUpdateStatus('Goods collected')}
+                      onClick={() => handleUpdateStatus('Goods collected', acceptedJob.id)}
                       className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition duration-150 ease-in-out"
                     >
                       Goods collected
                     </button>
                     <button
-                      onClick={() => handleUpdateStatus('En route to drop-off')}
+                      onClick={() => handleUpdateStatus('En route to drop-off', acceptedJob.id)}
                       className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition duration-150 ease-in-out"
                     >
                       En route to drop-off
                     </button>
                     <button
-                      onClick={() => handleUpdateStatus('Delivered')}
+                      onClick={() => handleUpdateStatus('Delivered', acceptedJob.id)}
                       className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition duration-150 ease-in-out"
                     >
                       Delivered

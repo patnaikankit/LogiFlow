@@ -1,14 +1,15 @@
+import { useState, useEffect } from "react";
 import axios from "axios"
 import { Navigate, useLocation } from 'react-router-dom';
 
 const isAuthenticated = async (path) => {
     const [auth, setAuth] = useState(null);
 
-    if (path.startsWith('/user') && localStorage.getItem('accessTokenToken')) {
+    if (path.startsWith('/user') && localStorage.getItem('accessToken')) {
         const userID = localStorage.getItem('userID');
         try {
             const response = await axios.get(`${import.meta.env.BACKEND_URL}/api/user/check/id/${userID}`, 
-                { headers: { Authorization: `Bearer ${localStorage.getItem('studentToken')}` } }
+                { headers: { Authorization: `Bearer ${localStorage.getItem('userToken')}` } }
             );
             return response.status === 200;
         } catch (error) {

@@ -1,5 +1,5 @@
 import { adminModel } from '../models/admin.model.js';
-import { vehicleModel } from '../models/vehicle.model.js';
+import { driverModel } from '../models/driver.model.js';
 import bcrypt from "bcrypt"
 import { generateToken } from '../utils/auth.util.js';
 
@@ -60,7 +60,7 @@ export const loginAdmin = async (req, res) => {
 
 export const getFleetStatus = async (req, res) => {
     try {
-        const vehicles = await vehicleModel.find({});
+        const vehicles = await driverModel.find({});
         res.status(200).json({
             success: true,
             vehicles
@@ -73,62 +73,62 @@ export const getFleetStatus = async (req, res) => {
     }
 };
 
-export const getVehicleDetails = async (req, res) => {
-    const { vehicleID } = req.params;
+// export const getVehicleDetails = async (req, res) => {
+//     const { vehicleID } = req.params;
 
-    try {
-        const vehicle = await vehicleModel.findById(vehicleID);
-        if (!vehicle) {
-            return res.status(404).json({
-                success: false,
-                message: 'Vehicle not found',
-            });
-        }
+//     try {
+//         const vehicle = await driverModel.findById(vehicleID);
+//         if (!vehicle) {
+//             return res.status(404).json({
+//                 success: false,
+//                 message: 'Vehicle not found',
+//             });
+//         }
 
-        res.status(200).json({
-            success: true,
-            vehicle
-        });
-    } catch (err) {
-        res.status(500).json({
-            success: false,
-            error: err.message
-        });
-    }
-};
+//         res.status(200).json({
+//             success: true,
+//             vehicle
+//         });
+//     } catch (err) {
+//         res.status(500).json({
+//             success: false,
+//             error: err.message
+//         });
+//     }
+// };
 
-export const addVehicle = async (req, res) => {
-    const { vehicleType, latitude, longitude, status } = req.body;
+// export const addVehicle = async (req, res) => {
+//     const { vehicleType, latitude, longitude, status } = req.body;
   
-    if (!vehicleType || !latitude || !longitude) {
-      return res.status(400).json({
-        success: false,
-        message: "All Fields are Required!"
-      });
-    }
+//     if (!vehicleType || !latitude || !longitude) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "All Fields are Required!"
+//       });
+//     }
   
-    try {
-      const newVehicle = new vehicleModel({
-        vehicleType,
-        currentLocation: {
-          latitude,
-          longitude
-        },
-        status: status || 'available' 
-      });
+//     try {
+//       const newVehicle = new driverModel({
+//         vehicleType,
+//         currentLocation: {
+//           latitude,
+//           longitude
+//         },
+//         status: status || 'available' 
+//       });
   
-      await newVehicle.save();
+//       await newVehicle.save();
   
-      return res.status(201).json({
-        success: true,
-        message: `${vehicleType} added successfully!`,
-        vehicle: newVehicle
-      });
-    } 
-    catch (err) {
-      res.status(500).json({
-        success: false,
-        error: err.message
-      });
-    }
-  };
+//       return res.status(201).json({
+//         success: true,
+//         message: `${vehicleType} added successfully!`,
+//         vehicle: newVehicle
+//       });
+//     } 
+//     catch (err) {
+//       res.status(500).json({
+//         success: false,
+//         error: err.message
+//       });
+//     }
+//   };

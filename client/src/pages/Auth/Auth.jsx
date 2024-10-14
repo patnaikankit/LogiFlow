@@ -21,28 +21,23 @@ const AuthPage = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log("Something");
-    console.log(import.meta.env.VITE_REACT_APP_BACKEND_URL);
     
-
     const formData = isLogin
-    ? { email, password } 
-    : { name, email, password, user_type: userType };
-    console.log(formData);
+      ? { email, password } 
+      : { name, email, password, user_type: userType }; 
     
-
-    const endpoint = isLogin 
-      ? `${import.meta.env.VITE_REACT_APP_BACKEND_URL}/api/user/login` 
+    const endpoint = isLogin
+      ? `${import.meta.env.VITE_REACT_APP_BACKEND_URL}/api/${userType}/login`
       : `${import.meta.env.VITE_REACT_APP_BACKEND_URL}/api/${userType}/register`;
-
+  
     axios.post(endpoint, formData)
       .then((response) => {
         const data = response.data;
         if (data.success) {
-          localStorage.setItem("userToken", data.data.tokens.accessToken.token);
-          localStorage.setItem("userID", data.data._id);
+          localStorage.setItem(`${userType}Token`, data.data.tokens.accessToken.token);
+          localStorage.setItem(`${userType}ID`, data.data._id);
           toast.success(`Successfully ${isLogin ? 'logged in' : 'registered'} as ${userType}. Redirecting...`);
-          window.location.href = `/${userType}/`;
+          window.location.href = `/${userType}`;
         } else {
           toast.error(`Failed to ${isLogin ? 'log in' : 'register'}. Please check your details.`);
         }
