@@ -53,7 +53,7 @@ export const AdminDashboard = () => {
             <span className="text-xl font-bold text-blue-500">LogiFlow</span>
           </div>
           <nav>
-            <button onClick={handleLogout()} className="text-gray-300 hover:text-white transition-colors">Logout</button>
+            <button onClick={handleLogout} className="text-gray-300 hover:text-white transition-colors">Logout</button>
           </nav>
         </div>
       </header>

@@ -3,7 +3,6 @@ import axios from "axios";
 import { Navigate, useLocation } from 'react-router-dom';
 
 const isAuthenticated = async (path) => {
-  // Check if the user is authenticated based on the path and token in localStorage
   if (path.startsWith('/user') && localStorage.getItem('accessToken')) {
     const userID = localStorage.getItem('userID');
     try {

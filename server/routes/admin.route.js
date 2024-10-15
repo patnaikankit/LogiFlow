@@ -6,7 +6,5 @@ const router = express.Router()
 
 router.post("/login", loginAdmin)
 router.get("/fleet-status", validateAdminToken, getFleetStatus)
-// router.get("/vehicle-detail/:vehicleID", validateAdminToken, getVehicleDetails)
-// router.post("/add-vehicle", validateAdminToken, addVehicle)
 
 export default router
