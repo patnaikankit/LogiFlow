@@ -9,36 +9,45 @@ const UserDashboard = () => {
   const [newBooking, setNewBooking] = useState({
     pickupLocation: '',
     dropOffLocation: '',
-    vehicleType: 'Train',
+    vehicleType: '',
   });
 
-  // useEffect(() => {
-  //   const fetchBookings = async () => {
-  //     try {
-  //       const userID = localStorage.getItem('userID'); 
-  //       if (userID) {
-  //         const response = await axios.get(
-  //           `${import.meta.env.VITE_REACT_APP_BACKEND_URL}/api/user/fetch-bookings/user/${userID}`,
-  //           {
-  //             headers: {
-  //               Authorization: `Bearer ${localStorage.getItem('userToken')}`, 
-  //             },
-  //           }
-  //         );
-
-  //         if (response.data.success) {
-  //           setBookings(response.data.bookings);
-  //         } else {
-  //           console.log('Failed to fetch bookings');
-  //         }
-  //       }
-  //     } catch (error) {
-  //       console.error('Error fetching bookings:', error);
-  //     }
-  //   };
-
-  //   fetchBookings();
-  // }, []);
+  useEffect(() => {
+    const fetchBookings = async () => {
+      try {
+        const userID = localStorage.getItem('userID'); 
+        if (userID) {
+          const response = await axios.get(
+            `${import.meta.env.VITE_REACT_APP_BACKEND_URL}/api/user/fetch-bookings/user/${userID}`,
+            {
+              headers: {
+                Authorization: `Bearer ${localStorage.getItem('userToken')}`, 
+              },
+            }
+          );
+  
+          if (response.data.success) {
+            const formattedBookings = response.data.data.map((booking) => ({
+              id: booking._id, 
+              pickup: booking.pickupLocation, 
+              dropoff: booking.dropOffLocation, 
+              vehicle: booking.vehicleType, 
+              status: booking.status, 
+            }));
+            setBookings(formattedBookings); 
+          } else {
+            console.log('Failed to fetch bookings');
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching bookings:', error);
+      }
+    };
+  
+    const intervalId = setInterval(fetchBookings, 5000);
+    return () => clearInterval(intervalId);
+  }, []);
+  
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -53,6 +62,40 @@ const UserDashboard = () => {
     window.location.href = "/";
   }
 
+  const handleStatusUpdate = async (bookingID) => {
+    try {
+      const response = await axios.post(
+        `${import.meta.env.VITE_REACT_APP_BACKEND_URL}/api/update-booking/booking/${bookingID}`,
+        { status: 'Updated Status' }, 
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('userToken')}`,
+          },
+        }
+      );
+  
+      if (response.data.success) {
+        const updatedBooking = response.data.booking;
+        setBookings((prevBookings) =>
+          prevBookings.map((booking) =>
+            booking.id === updatedBooking.id
+              ? { ...booking, status: updatedBooking.status } 
+              : booking
+          )
+        );
+  
+        toast.success('Booking status updated successfully!');
+      } else {
+        toast.error('Failed to update booking status.');
+      }
+    } catch (error) {
+      console.error('Error updating booking status:', error);
+      toast.error('An error occurred while updating the booking status.');
+    }
+  };
+  
+  
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     const newBookingData = {
@@ -62,7 +105,6 @@ const UserDashboard = () => {
     console.log(newBookingData);
     console.log(localStorage.getItem('userID'));
     
-  
     try {
       const response = await axios.post(`${import.meta.env.VITE_REACT_APP_BACKEND_URL}/api/user/booking/${localStorage.getItem('userID')}`, newBookingData, {
         headers: {
@@ -184,20 +226,26 @@ const UserDashboard = () => {
                   </tr>
                 </thead>
                 <tbody className="bg-gray-800 divide-y divide-gray-700">
-                  {bookings.map((booking) => (
-                    <tr key={booking.id}>
-                      <td className="px-6 py-4 whitespace-nowrap">{booking.id}</td>
-                      <td className="px-6 py-4 whitespace-nowrap">{booking.pickup}</td>
-                      <td className="px-6 py-4 whitespace-nowrap">{booking.dropoff}</td>
-                      <td className="px-6 py-4 whitespace-nowrap">{booking.vehicle}</td>
-                      <td className="px-6 py-4 whitespace-nowrap">{booking.status}</td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <button className="text-blue-500 hover:text-blue-400 transition-colors">
-                          Track
-                        </button>
-                      </td>
+                {bookings && bookings.length > 0 ? (
+                    bookings.map((booking) => (
+                      <tr key={booking.id}>
+                        <td className="px-6 py-4 whitespace-nowrap">{booking.id}</td>
+                        <td className="px-6 py-4 whitespace-nowrap">{booking.pickup}</td>
+                        <td className="px-6 py-4 whitespace-nowrap">{booking.dropoff}</td>
+                        <td className="px-6 py-4 whitespace-nowrap">{booking.vehicle}</td>
+                        <td className="px-6 py-4 whitespace-nowrap">{booking.status}</td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <button onClick={() => {handleStatusUpdate(booking.id)}} className="text-blue-500 hover:text-blue-400 transition-colors">
+                            Track
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan="6" className="px-6 py-4 text-center">No bookings available</td>
                     </tr>
-                  ))}
+                  )}
                 </tbody>
               </table>
             </div>
