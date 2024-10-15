@@ -29,6 +29,10 @@ const AuthPage = () => {
     const endpoint = isLogin
       ? `${import.meta.env.VITE_REACT_APP_BACKEND_URL}/api/${userType}/login`
       : `${import.meta.env.VITE_REACT_APP_BACKEND_URL}/api/${userType}/register`;
+
+      console.log(endpoint);
+      console.log(formData);
+      
   
     axios.post(endpoint, formData)
       .then((response) => {
