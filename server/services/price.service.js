@@ -14,7 +14,8 @@ export const calculatePrice = (pickupLocation, dropOffLocation, vehicleType) => 
       throw new Error('Invalid vehicle type');
   }
 
-  return distance * basePrice ;
+  const price = distance * basePrice;
+  return parseFloat(price.toFixed(2));
 };
 
 const getDistance = (pickup, dropoff) => {
