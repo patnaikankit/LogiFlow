@@ -6,18 +6,18 @@ This project is done as part of an internship task for [Atlan](https://atlan.com
 
 ## Key Features
 
--- User authentication and protected routes
--- Real-time booking creation, tracking, and status updates
--- Dynamic pricing based on distance and vehicle type
--- **Admin** dashboard for managing bookings, vehicles, and users
--- **Driver** interface for accepting bookings, updating delivery status, and tracking progress
+- User authentication and protected routes
+- Real-time booking creation, tracking, and status updates
+- Dynamic pricing based on distance and vehicle type
+- **Admin** dashboard for managing bookings, vehicles, and users
+- **Driver** interface for accepting bookings, updating delivery status, and tracking progress
 
 ## Tech Stack
 
--- React
--- Node.js
--- MongoDB
--- Docker
+- React
+- Node.js
+- MongoDB
+- Docker
 
 ## Installation
 
