@@ -42,4 +42,4 @@ This project is done as part of an internship task for [Atlan](https://atlan.com
 
 ## Architecture
 
-![Atlan Architecture] (https://drive.google.com/file/d/1RmXikY6b-25NyWEvvcnPSvnrpfKUfHEB/view?usp=sharing)
+![Atlan Architecture](https://drive.google.com/uc?export=view&id=1RmXikY6b-25NyWEvvcnPSvnrpfKUfHEB)
