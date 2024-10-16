@@ -40,3 +40,6 @@ This project is done as part of an internship task for [Atlan](https://atlan.com
    ```
    Note: Make sure docker is running
 
+## Architecture
+
+![Atlan Architecture] (https://drive.google.com/file/d/1RmXikY6b-25NyWEvvcnPSvnrpfKUfHEB/view?usp=sharing)
