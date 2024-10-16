@@ -1,6 +1,7 @@
 import { userModel } from "../models/user.model.js"
 import { adminModel } from "../models/admin.model.js";
 import jwt from "jsonwebtoken"
+import { driverModel } from "../models/driver.model.js";
 
 export const validateUserToken = async (req, res, next) => {
     const authHeader = req.headers.authorization;
@@ -34,6 +35,42 @@ export const validateUserToken = async (req, res, next) => {
     } 
     catch(error){
         console.error('Error finding user:', error);
+        return res.status(500).json({ message: 'Internal server error' });
+    }
+}
+
+export const validateDriverToken = async (req, res, next) => {
+    const authHeader = req.headers.authorization;
+
+    if(!authHeader){
+        return res.status(401).json({ message: 'Authorization header is required' });
+    }
+
+    const token = authHeader.startsWith('Bearer ') ? authHeader.split(' ')[1] : null;
+
+    if(!token){
+        return res.status(401).json({ message: 'Access token is required' });
+    }
+
+    try{
+        const driver = await driverModel.findOne({ 'tokens.accessToken.token': token })
+
+        if(!driver){
+            return res.status(401).json({ message: 'Invalid token' });
+        }
+
+        jwt.verify(token, process.env.PASS_KEY, (err, decoded) => {
+            if(err){
+                console.error('Token verification error:', err);
+                return res.status(401).json({ message: 'Token verification failed' });
+            }
+
+            req.driver = driver;
+            next();
+        });
+    } 
+    catch(error){
+        console.error('Error finding driver:', error);
         return res.status(500).json({ message: 'Internal server error' });
     }
 }

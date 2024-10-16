@@ -12,7 +12,13 @@ export const DriverDashboard = () => {
   useEffect(() => {
     const fetchJobs = async () => {
       try {
-        const response = await axios.get(`${import.meta.env.VITE_REACT_APP_BACKEND_URL}/api/driver/new-booking`);
+        const response = await axios.get(`${import.meta.env.VITE_REACT_APP_BACKEND_URL}/api/driver/new-booking`,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem('driverToken')}`, 
+            },
+          }
+        );
         console.log(response);
         
         if (response.data.success) {
@@ -50,7 +56,7 @@ export const DriverDashboard = () => {
         { status: 'Accepted' },
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+            Authorization: `Bearer ${localStorage.getItem('driverToken')}`,
           },
         }
       );
@@ -77,7 +83,7 @@ export const DriverDashboard = () => {
         { status: newStatus },
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+            Authorization: `Bearer ${localStorage.getItem('driverToken')}`,
           },
         }
       );

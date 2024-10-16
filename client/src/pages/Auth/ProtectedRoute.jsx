@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { Navigate, useLocation } from 'react-router-dom';
-// import LoadingAnimation from '@/components/LoadingAnimation'; // Assuming you have a loading animation component
+import Spinner from '../../components/Spinner'
 
 const isAuthenticated = async (path) => {
   if (path.startsWith('/user') && localStorage.getItem('userToken')) {
@@ -69,8 +69,7 @@ export const ProtectedRoute = ({ component: Component }) => {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        {/* <LoadingAnimation /> */}
-        Loading..
+        <Spinner />
       </div>
     );
   }

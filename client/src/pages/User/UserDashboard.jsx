@@ -53,6 +53,7 @@ const UserDashboard = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
+ 
     setNewBooking((prevBooking) => ({
       ...prevBooking,
       [name]: value, 
@@ -66,8 +67,8 @@ const UserDashboard = () => {
 
   const handleStatusUpdate = async (bookingID) => {
     try {
-      const response = await axios.post(
-        `${import.meta.env.VITE_REACT_APP_BACKEND_URL}/api/update-booking/booking/${bookingID}`,
+      const response = await axios.get(
+        `${import.meta.env.VITE_REACT_APP_BACKEND_URL}/api/user/check-status/booking/${bookingID}`,
         { status: 'Updated Status' },
         {
           headers: {
@@ -75,7 +76,7 @@ const UserDashboard = () => {
           },
         }
       );
-  
+ 
       if (response.data.success) {
         const updatedBooking = response.data.booking;
         setBookings((prevBookings) =>
@@ -109,7 +110,7 @@ const UserDashboard = () => {
           },
         }
       );
-  
+
       if (response.status === 201) {
         setBookings((prev) => [...prev, newBookingData]);
         toast.success('Booking created successfully!');
@@ -120,7 +121,7 @@ const UserDashboard = () => {
       toast.error('Something went wrong. Please try again later.');
       console.error(error);
     } finally {
-      setNewBooking({ pickupLocation: '', dropOffLocation: '', vehicleType: 'Train', date: '' });
+      setNewBooking({ pickupLocation: '', dropOffLocation: '', vehicleType: '', date: '' });
     }
   };
 
@@ -286,8 +287,7 @@ const UserDashboard = () => {
                   >
                     <option value="">Select Vehicle</option>
                     <option value="Train">Train</option>
-                    <option value="Bus">Bus</option>
-                    <option value="Cab">Cab</option>
+                    <option value="Truck">Truck</option>
                   </select>
                 </div>
   
@@ -327,7 +327,7 @@ const UserDashboard = () => {
             <div className="bg-gray-700 p-4 rounded-lg">
               <h3 className="text-lg font-medium mb-2">Completed Bookings</h3>
               <p className="text-3xl font-bold text-green-500">
-                {bookings.filter(booking => booking.status === 'Completed').length}
+                {bookings.filter(booking => booking.status === 'Delivered').length}
               </p>
             </div>
             <div className="bg-gray-700 p-4 rounded-lg">
@@ -350,9 +350,10 @@ const UserDashboard = () => {
           </div>
         </div>
       </footer>
+
+      <ToastContainer />
     </div>
   );
-  
 };
 
 export default UserDashboard;
