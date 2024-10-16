@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { toast } from 'react-toastify';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 export const AdminLogin = () => {
   const [email, setEmail] = useState('');
@@ -157,6 +158,8 @@ export const AdminLogin = () => {
           </div>
         </div>
       </div>
+
+      <ToastContainer />
     </div>
   );
 };

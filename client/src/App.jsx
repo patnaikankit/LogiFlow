@@ -16,11 +16,9 @@ function App() {
           <Route path="/" element={<HomePage />} />
           <Route path="/auth" element={<AuthPage />} />
           <Route path='/auth-admin' element={<AdminLogin />} />
-          {/* <Route path='/user' element={<ProtectedRoute component={<UserDashboard />} />}
-          /> */}
-          <Route path='/user' element={<UserDashboard />}/>
-          <Route path='/driver' element={<DriverDashboard />}/>
-          <Route path='/admin' element={<AdminDashboard />} />
+          <Route path='/user' element={<ProtectedRoute component={UserDashboard} />} />
+          <Route path='/driver' element={<ProtectedRoute component={DriverDashboard} />} />
+          <Route path='/admin' element={<ProtectedRoute component={AdminDashboard} />} />
         </Routes>
       </Router>
     </div>

@@ -1,13 +1,14 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { Navigate, useLocation } from 'react-router-dom';
+// import LoadingAnimation from '@/components/LoadingAnimation'; // Assuming you have a loading animation component
 
 const isAuthenticated = async (path) => {
-  if (path.startsWith('/user') && localStorage.getItem('accessToken')) {
+  if (path.startsWith('/user') && localStorage.getItem('userToken')) {
     const userID = localStorage.getItem('userID');
     try {
       const response = await axios.get(
-        `${import.meta.env.BACKEND_URL}/api/user/check/id/${userID}`,
+        `${import.meta.env.VITE_REACT_APP_BACKEND_URL}/api/user/check/id/${userID}`,
         { headers: { Authorization: `Bearer ${localStorage.getItem('userToken')}` } }
       );
       return response.status === 200;
@@ -18,11 +19,11 @@ const isAuthenticated = async (path) => {
     }
   }
 
-  if (path.startsWith('/driver') && localStorage.getItem('accessTokenToken')) {
+  if (path.startsWith('/driver') && localStorage.getItem('driverToken')) {
     const driverID = localStorage.getItem('driverID');
     try {
       const response = await axios.get(
-        `${import.meta.env.BACKEND_URL}/api/user/check/id/${driverID}`,
+        `${import.meta.env.VITE_REACT_APP_BACKEND_URL}/api/driver/check/id/${driverID}`,
         { headers: { Authorization: `Bearer ${localStorage.getItem('driverToken')}` } }
       );
       return response.status === 200;
@@ -33,24 +34,58 @@ const isAuthenticated = async (path) => {
     }
   }
 
-  return false;  // Default case when no authentication is available
+  if (path.startsWith('/admin') && localStorage.getItem('adminToken')) {
+    const adminID = localStorage.getItem('adminID');
+    try {
+      const response = await axios.get(
+        `${import.meta.env.VITE_REACT_APP_BACKEND_URL}/api/admin/check/id/${adminID}`,
+        { headers: { Authorization: `Bearer ${localStorage.getItem('adminToken')}` } }
+      );
+      return response.status === 200;
+    } catch (error) {
+      console.error('Error checking driver authentication:', error);
+      localStorage.clear();
+      return false;
+    }
+  }
+
+  return false;
 };
 
-export const ProtectedRoute = ({ Component }) => {
-  const [auth, setAuth] = useState(null);
-  const location = useLocation();  // Get the current location/path from the router
+export const ProtectedRoute = ({ component: Component }) => {
+  const [isAuth, setIsAuth] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const location = useLocation();
 
   useEffect(() => {
     const checkAuth = async () => {
-      const isUserAuthenticated = await isAuthenticated(location.pathname); // Pass the current path
-      setAuth(isUserAuthenticated);
+      const auth = await isAuthenticated(location.pathname);
+      setIsAuth(auth);
+      setLoading(false); 
     };
     checkAuth();
   }, [location.pathname]);
 
-  if (auth === null) {
-    return <div>Loading...</div>; // You can display a loading spinner here
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        {/* <LoadingAnimation /> */}
+        Loading..
+      </div>
+    );
   }
 
-  return auth ? <Component /> : <Navigate to="/login" />;
+  if (isAuth) {
+    return <Component />;
+  } else {
+    if (location.pathname.startsWith('/user')) {
+      return <Navigate to="/auth" replace state={{ from: location }} />;
+    } else if (location.pathname.startsWith('/driver')) {
+      return <Navigate to="/auth" replace state={{ from: location }} />;
+    } else {
+      return <Navigate to="/auth-admin" replace state={{ from: location }} />;
+    }
+  }
 };
+
+export default ProtectedRoute;

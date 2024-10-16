@@ -39,6 +39,21 @@ const bookingSchema = new mongoose.Schema({
       type: Date, 
       default: Date.now 
     },
+    date: {
+    type: String,
+    default: () => {
+      const today = new Date();
+      return today.toLocaleString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false
+      });
+    }
+  }
 }, { timestamps: true });
 
 export const bookingModel = mongoose.model('Booking', bookingSchema);

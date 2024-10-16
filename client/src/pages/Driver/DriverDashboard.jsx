@@ -1,19 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import axios from "axios";
-import { toast } from 'react-toastify';
+import axios from 'axios';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
-const DriverDashboard = () => {
-  const [availableJobs, setAvailableJobs] = useState([]); 
-
+export const DriverDashboard = () => {
+  const [availableJobs, setAvailableJobs] = useState([]);
   const [acceptedJob, setAcceptedJob] = useState(null);
-
   const [jobStatus, setJobStatus] = useState('');
-
+  const [activeTab, setActiveTab] = useState('available');
 
   useEffect(() => {
     const fetchJobs = async () => {
       try {
-        const response = await axios.get(`${import.meta.env.VITE_REACT_APP_BACKEND_URL}/api/driver/new-booking`); 
+        const response = await axios.get(`${import.meta.env.VITE_REACT_APP_BACKEND_URL}/api/driver/new-booking`);
         console.log(response);
         
         if (response.data.success) {
@@ -42,51 +41,46 @@ const DriverDashboard = () => {
 
   const handleAcceptJob = async (job) => {
     console.log(`Job ID: ${job.id}`);
-    console.log(`${localStorage.getItem('driverID')}`);
-    console.log(`${localStorage.getItem('driverToken')}`);
-    
+    console.log(`Driver ID: ${localStorage.getItem('driverID')}`);
+    console.log(`Driver Token: ${localStorage.getItem('accessToken')}`);
 
     try {
       const response = await axios.post(
         `${import.meta.env.VITE_REACT_APP_BACKEND_URL}/api/driver/accept-booking/booking/${job.id}/vehicle/${localStorage.getItem('driverID')}`,
-        { status: 'Accepted' }, 
+        { status: 'Accepted' },
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem('accessToken')}`, 
+            Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
           },
         }
       );
-      console.log(response);
       
-  
       if (response.data.success) {
         console.log("Booking updated successfully.");
         setAcceptedJob(job);
         setAvailableJobs(availableJobs.filter(j => j.id !== job.id));
         setJobStatus('Accepted');
+        toast.success('Job Accepted');
       }
     } catch (error) {
       console.error("Error accepting job:", error);
+      toast.error('Failed to accept job');
     }
   };
-  
 
   const handleUpdateStatus = async (newStatus, job) => {
     try {
-      console.log(`${job}`);
-      
       setJobStatus(newStatus);
 
       const response = await axios.post(
-        `${import.meta.env.VITE_REACT_APP_BACKEND_URL}/api/driver/update-booking/booking/${job}/`,
+        `${import.meta.env.VITE_REACT_APP_BACKEND_URL}/api/driver/update-booking/booking/${job.id}/`,
         { status: newStatus },
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem('accessToken')}`, 
+            Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
           },
         }
       );
-      
 
       if (response.data.success) {
         console.log('Status updated successfully:', response.data);
@@ -100,13 +94,20 @@ const DriverDashboard = () => {
       toast.error('An error occurred while updating job status');
     }
   };
-  
+
+  const renderStatusButton = (label, status) => (
+    <button
+      onClick={() => handleUpdateStatus(status, acceptedJob)}
+      className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition duration-150 ease-in-out"
+    >
+      {label}
+    </button>
+  );
 
   const handleLogout = () => {
     localStorage.clear();
     window.location.href = "/";
-  } 
-
+  };
 
   return (
     <div className="min-h-screen bg-gray-900 text-white">
@@ -131,8 +132,15 @@ const DriverDashboard = () => {
             </svg>
             <span className="text-xl font-bold text-blue-500">LogiFlow</span>
           </div>
-          <nav>
-            <button onClick={handleLogout} className="text-gray-300 hover:text-white transition-colors">Logout</button>
+          <nav className="flex items-center space-x-4">
+            <a href="#" className="text-gray-300 hover:text-white transition-colors">Dashboard</a>
+            <a href="#" className="text-gray-300 hover:text-white transition-colors">Profile</a>
+            <button
+              onClick={handleLogout}
+              className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition-colors"
+            >
+              Logout
+            </button>
           </nav>
         </div>
       </header>
@@ -140,90 +148,102 @@ const DriverDashboard = () => {
       <main className="container mx-auto px-4 py-8">
         <h1 className="text-3xl font-bold mb-8">Driver Dashboard</h1>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="mb-6">
+          <nav className="flex space-x-4">
+            <button
+              onClick={() => setActiveTab('available')}
+              className={`px-3 py-2 rounded-md ${activeTab === 'available' ? 'bg-blue-600 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white'}`}
+            >
+              Available Jobs
+            </button>
+            <button
+              onClick={() => setActiveTab('current')}
+              className={`px-3 py-2 rounded-md ${activeTab === 'current' ? 'bg-blue-600 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white'}`}
+            >
+              Current Job
+            </button>
+          </nav>
+        </div>
+
+        {activeTab === 'available' && (
           <section className="bg-gray-800 p-6 rounded-lg shadow-lg">
             <h2 className="text-2xl font-semibold mb-4">Available Jobs</h2>
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-700">
-                <thead className="bg-gray-700">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">ID</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Pickup</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Drop-off</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Vehicle</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Action</th>
-                  </tr>
-                </thead>
-                <tbody className="bg-gray-800 divide-y divide-gray-700">
-                  {availableJobs.map((job) => (
-                    <tr key={job.id}>
-                      <td className="px-6 py-4 whitespace-nowrap">{job.id}</td>
-                      <td className="px-6 py-4 whitespace-nowrap">{job.pickup}</td>
-                      <td className="px-6 py-4 whitespace-nowrap">{job.dropoff}</td>
-                      <td className="px-6 py-4 whitespace-nowrap">{job.vehicle}</td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <button
-                          onClick={() => handleAcceptJob(job)}
-                          className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition duration-150 ease-in-out"
-                        >
-                          Accept
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {availableJobs.map((job) => (
+                <div key={job.id} className="bg-gray-700 p-4 rounded-lg shadow">
+                  <h3 className="text-lg font-semibold mb-2">Job #{job.id}</h3>
+                  <p className="text-gray-300 mb-1"><strong>Pickup:</strong> {job.pickup}</p>
+                  <p className="text-gray-300 mb-1"><strong>Drop-off:</strong> {job.dropoff}</p>
+                  <p className="text-gray-300 mb-1"><strong>Vehicle:</strong> {job.vehicle}</p>
+                  <button
+                    onClick={() => handleAcceptJob(job)}
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition duration-150 ease-in-out"
+                  >
+                    Accept Job
+                  </button>
+                </div>
+              ))}
             </div>
           </section>
+        )}
 
+        {activeTab === 'current' && (
           <section className="bg-gray-800 p-6 rounded-lg shadow-lg">
             <h2 className="text-2xl font-semibold mb-4">Current Job</h2>
             {acceptedJob ? (
-              <div className="space-y-4">
-                <div className="bg-gray-700 p-4 rounded-lg">
-                  <h3 className="text-lg font-semibold mb-2">Job Details</h3>
-                  <p><strong>ID:</strong> {acceptedJob.id}</p>
-                  <p><strong>Pickup:</strong> {acceptedJob.pickup}</p>
-                  <p><strong>Drop-off:</strong> {acceptedJob.dropoff}</p>
-                  <p><strong>Vehicle:</strong> {acceptedJob.vehicle}</p>
-                  <p><strong>Status:</strong> {jobStatus}</p>
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold mb-2">Update Status</h3>
-                  <div className="flex flex-wrap gap-2">
-                    <button
-                      onClick={() => handleUpdateStatus('En route to pickup', acceptedJob.id)}
-                      className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition duration-150 ease-in-out"
-                    >
-                      En route to pickup
-                    </button>
-                    <button
-                      onClick={() => handleUpdateStatus('Goods collected', acceptedJob.id)}
-                      className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition duration-150 ease-in-out"
-                    >
-                      Goods collected
-                    </button>
-                    <button
-                      onClick={() => handleUpdateStatus('En route to drop-off', acceptedJob.id)}
-                      className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition duration-150 ease-in-out"
-                    >
-                      En route to drop-off
-                    </button>
-                    <button
-                      onClick={() => handleUpdateStatus('Delivered', acceptedJob.id)}
-                      className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition duration-150 ease-in-out"
-                    >
-                      Delivered
-                    </button>
+              <div className="space-y-6">
+                <div className="bg-gray-700 p-6 rounded-lg">
+                  <h3 className="text-xl font-semibold mb-4">Job Details</h3>
+                  <p className="text-gray-300 mb-2"><strong>Pickup:</strong> {acceptedJob.pickup}</p>
+                  <p className="text-gray-300 mb-2"><strong>Drop-off:</strong> {acceptedJob.dropoff}</p>
+                  <p className="text-gray-300 mb-2"><strong>Vehicle:</strong> {acceptedJob.vehicle}</p>
+                  <p className="text-gray-300 mb-2"><strong>Status:</strong> {jobStatus}</p>
+                  <div className="space-y-4">
+                    {renderStatusButton("In Progress", "In Progress")}
+                    {renderStatusButton("Delivered", "Delivered")}
+                    {renderStatusButton("Goods collected", "Goods collected")}
+                    {renderStatusButton("En route to drop-off", "En route to drop-off")}
+                    {renderStatusButton("En route to pick-up", "En route to pick-up")}
                   </div>
                 </div>
               </div>
             ) : (
-              <p className="text-gray-400">No job currently accepted. Accept a job from the available jobs list.</p>
+              <p className="text-gray-300">You don't have any accepted job yet.</p>
             )}
           </section>
+        )}
+
+        <section className="mt-8 bg-gray-800 p-6 rounded-lg shadow-lg">
+          <h2 className="text-2xl font-semibold mb-4">Quick Stats</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="bg-gray-700 p-4 rounded-lg">
+              <h3 className="text-lg font-medium mb-2">Jobs Completed Today</h3>
+              <p className="text-3xl font-bold text-blue-500">5</p>
+            </div>
+            <div className="bg-gray-700 p-4 rounded-lg">
+              <h3 className="text-lg font-medium mb-2">Total Distance</h3>
+              <p className="text-3xl font-bold text-green-500">78.3 miles</p>
+            </div>
+            <div className="bg-gray-700 p-4 rounded-lg">
+              <h3 className="text-lg font-medium mb-2">Average Rating</h3>
+              <p className="text-3xl font-bold text-yellow-500">4.8 / 5</p>
+            </div>
+          </div>
+        </section>
+
+        <footer className="bg-gray-800 mt-12">
+        <div className="container mx-auto px-4 py-6 flex flex-col md:flex-row justify-between items-center">
+          <div className="text-gray-400 text-sm">© 2023 LogiFlow. All rights reserved.</div>
+          <div className="mt-4 md:mt-0">
+            <a href="#" className="text-gray-400 hover:text-white mr-4">Privacy Policy</a>
+            <a href="#" className="text-gray-400 hover:text-white mr-4">Terms of Service</a>
+            <a href="#" className="text-gray-400 hover:text-white">Contact Us</a>
+          </div>
         </div>
+      </footer>
       </main>
+
+      <ToastContainer />
     </div>
   );
 };

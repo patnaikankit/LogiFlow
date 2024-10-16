@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { toast } from 'react-toastify';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const AuthPage = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -230,6 +231,8 @@ const AuthPage = () => {
           )}
         </div>
       </div>
+
+      <ToastContainer />
     </div>
   );
 };

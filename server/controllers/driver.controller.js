@@ -2,6 +2,7 @@ import { bookingModel } from '../models/booking.model.js';
 import { driverModel } from '../models/driver.model.js';
 import bcrypt from "bcrypt"
 import { generateToken } from '../utils/auth.util.js';
+import jwt from "jsonwebtoken"
 
 export const registerDriver = async (req, res) => {
     const { name, email, password } = req.body;
@@ -201,3 +202,44 @@ export const statusUpdate = async (req, res) => {
         });
     }
 };
+
+export const checkDriverToken = async (req, res) => {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+        return res.status(401).json({ message: 'Authorization header is required' });
+    }
+  
+    const token = authHeader.startsWith('Bearer ') ? authHeader.split(' ')[1] : null;
+    if (!token) {
+        return res.status(401).json({ message: 'Access token is required' });
+    }
+  
+    try {
+        const driver = await driverModel.findOne({ 'tokens.accessToken.token': token });
+  
+        if(!driver){
+            return res.status(401).json({ message: 'Invalid token' });
+        }
+  
+        jwt.verify(token, process.env.PASS_KEY, (err, decoded) => {
+            if(err){
+                console.error('Token verification error:', err);
+                return res.status(401).json({ message: 'Token verification failed' });
+            } 
+            else{
+                return res.status(200).json({
+                    message: "Token is valid",
+                    driver: {
+                        id: driver._id,
+                        name: driver.name,
+                        email: driver.email,
+                    }
+                });
+            }
+        });
+    } 
+    catch (error){
+        console.error('Error finding driver:', error);
+        return res.status(500).json({ message: 'Internal server error' });
+    }
+  };

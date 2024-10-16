@@ -9,6 +9,6 @@ router.post("/login", loginUser);
 router.post("/booking/:userID", validateUserToken, createBooking);
 router.get('/check-status/booking/:bookingID', validateUserToken, trackvehicle);
 router.get('/fetch-bookings/user/:userID', validateUserToken, fetchMyBookings);
-router.get('/check.id/:userID', checkUserToken)
+router.get('/check/id/:userID', checkUserToken)
 
 export default router
