@@ -1,0 +1,21 @@
+version: '3'
+
+services:
+  frontend:
+    build: ./client
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+
+  backend:
+    build: ./server
+    ports:
+      - "4000:4000"
+    environment:
+      - MONGO_URI=${MONGO_ATLAS_URI}
+    depends_on:
+      - frontend
+
+volumes:
+  mongo-data:
