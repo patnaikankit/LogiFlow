@@ -98,10 +98,10 @@ export const getVehicleDetails = async (req, res) => {
     }
 };
 
-export const addVehicle = async (req, res) => {
-    const { vehicleType, latitude, longitude, status } = req.body;
+export const addDriver = async (req, res) => {
+    const { name, email, password, vehicleType, status, trips, rating } = req.body;
   
-    if (!vehicleType || !latitude || !longitude) {
+    if (!name || !email || !password || !vehicleType || !status) {
       return res.status(400).json({
         success: false,
         message: "All Fields are Required!"
@@ -109,21 +109,22 @@ export const addVehicle = async (req, res) => {
     }
   
     try {
-      const newVehicle = new driverModel({
+      const newDriver = new driverModel({
+        name, 
+        email, 
+        password,
         vehicleType,
-        currentLocation: {
-          latitude,
-          longitude
-        },
-        status: status || 'available' 
+        status: status || 'active' ,
+        trips,
+        rating
       });
   
-      await newVehicle.save();
+      await newDriver.save();
   
       return res.status(201).json({
         success: true,
         message: `${vehicleType} added successfully!`,
-        vehicle: newVehicle
+        vehicle: newDriver
       });
     } 
     catch (err) {

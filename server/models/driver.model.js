@@ -33,12 +33,14 @@ const driverSchema = new mongoose.Schema({
   },
   status: { 
     type: String, 
-    default: 'available' 
-  },  
-  bookingID: {
-    type: String,
-    ref: 'Booking'
-  }    
+    default: 'active' 
+  },   
+  trips: {
+    type: Number
+  },
+  rating: {
+    type: Number
+  }
 }, { timestamps: true });
 
 export const driverModel = mongoose.model('Driver', driverSchema);

@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import axios from 'axios';
+import { DriverPopup } from "../../components/DriverPopup"
 
 export const AdminDashboard = () => {
   const [vehicles, setVehicles] = useState([
@@ -12,13 +14,8 @@ export const AdminDashboard = () => {
     { id: 5, type: 'Truck', status: 'In Use', driver: 'Charlie Davis', lastMaintenance: '2023-05-05' },
   ]);
 
-  const [drivers, setDrivers] = useState([
-    { id: 1, name: 'John Doe', status: 'Active', completedTrips: 150, avgRating: 4.8 },
-    { id: 2, name: 'Jane Smith', status: 'Active', completedTrips: 120, avgRating: 4.9 },
-    { id: 3, name: 'Bob Johnson', status: 'Inactive', completedTrips: 90, avgRating: 4.7 },
-    { id: 4, name: 'Alice Brown', status: 'Active', completedTrips: 80, avgRating: 4.6 },
-    { id: 5, name: 'Charlie Davis', status: 'Active', completedTrips: 110, avgRating: 4.8 },
-  ]);
+  const [drivers, setDrivers] = useState([]);
+  const [isPopupOpen, setIsPopupOpen] = useState(false);
 
   const analyticsData = [
     { name: 'Mon', trips: 12, avgTime: 45, revenue: 1200 },
@@ -42,6 +39,79 @@ export const AdminDashboard = () => {
       default: return 'bg-gray-100 text-gray-800';
     }
   };
+
+  const handlePopup = () => {
+    console.log("Hello");
+    setIsPopupOpen(true);
+  }
+
+  const handleClosePopup = () => {
+    setIsPopupOpen(false);
+  };
+
+  useEffect(() => {
+    const handleFetchDrivers = async () => {
+      try {
+        const response = await axios.get(
+          `${import.meta.env.VITE_REACT_APP_BACKEND_URL}/api/admin/fleet-status`,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem('adminToken')}`,
+            },
+          }
+        );
+    
+        if (response.data.success) {
+          console.log('Drivers fetched successfully');
+          const drivers = response.data.vehicles.map(driver => ({
+            id: driver._id,
+            name: driver.name,
+            status: driver.status,
+            completedTrips: driver.trips,
+            avgRating: driver.rating,
+          }));
+    
+          setDrivers(drivers);
+        } else {
+          console.error('Failed to fetch drivers');
+          toast.error('Failed to fetch drivers!')
+        }
+      } catch (error) {
+        console.error('Error fetching drivers:', error);
+        toast.error('Failed to fetch drivers');
+      }
+    };
+
+    if (window.performance) {
+      const navigationType = window.performance.getEntriesByType('navigation')[0].type;
+      
+      if (navigationType === 'reload') {
+        handleFetchDrivers();  
+      }
+    }
+  }, [])
+
+  const handleAddDriver = async () => {
+    try {
+      const response = await axios.post(
+        `${import.meta.env.VITE_REACT_APP_BACKEND_URL}/api/admin/add-driver`,
+        { status: 'Accepted' },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('adminToken')}`,
+          },
+        }
+      );
+      
+      if (response.data.success) {
+        console.log("Driver retrived successfully!");
+        toast.success('Driver added successfully!')
+      }
+    } catch (error) {
+      console.error("Error adding driver:", error);
+      toast.error('Failed to add driver');
+    }
+  }
 
   const handleLogout = () => {
     localStorage.clear();
@@ -199,48 +269,64 @@ export const AdminDashboard = () => {
         )}
 
         {activeTab === 'drivers' && (
-          <section className="bg-gray-800 p-6 rounded-lg shadow-lg">
-            <h2 className="text-2xl font-semibold mb-4">Driver Management</h2>
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-700">
-                <thead className="bg-gray-700">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">ID</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Name</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Status</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Completed Trips</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Avg Rating</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Action</th>
+        <section className="bg-gray-800 p-6 rounded-lg shadow-lg">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-2xl font-semibold">Driver Management</h2>
+            <button
+              onClick={handlePopup} 
+              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg"
+            >
+              Add Driver
+            </button>
+          </div>
+
+          {isPopupOpen && (
+              <DriverPopup
+                isPopupOpen={isPopupOpen}
+                handleClosePopup={handleClosePopup}
+                handleSubmit={handleAddDriver}
+              />
+            )}
+
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-700">
+              <thead className="bg-gray-700">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">ID</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Name</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Status</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Completed Trips</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Avg Rating</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Action</th>
+                </tr>
+              </thead>
+              <tbody className="bg-gray-800 divide-y divide-gray-700">
+                {drivers.map((driver) => (
+                  <tr key={driver.id}>
+                    <td className="px-6 py-4 whitespace-nowrap">{driver.id}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">{driver.name}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(driver.status)}`}>
+                        {driver.status}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">{driver.completedTrips}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">{driver.avgRating}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <button className="text-blue-500 hover:text-blue-400 transition-colors mr-2">
+                        Edit
+                      </button>
+                      <button className="text-red-500 hover:text-red-400 transition-colors">
+                        Delete
+                      </button>
+                    </td>
                   </tr>
-                </thead>
-                <tbody className="bg-gray-800 divide-y divide-gray-700">
-                  {drivers.map((driver) => (
-                    <tr key={driver.id}>
-                      <td className="px-6 py-4 whitespace-nowrap">{driver.id}</td>
-                      <td className="px-6 py-4 whitespace-nowrap">{driver.name}</td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(driver.status)}`}>
-                          {driver.status}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">{driver.completedTrips}</td>
-                      <td className="px-6 py-4 whitespace-nowrap">{driver.avgRating}</td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <button className="text-blue-500 hover:text-blue-400 transition-colors mr-2">
-                          Edit
-                        </button>
-                        <button className="text-red-500 hover:text-red-400 transition-colors">
-                          Delete
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            
-            </div>
-          </section>
-        )}
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      )}
       </main>
 
       <footer className="bg-gray-800 mt-12">
